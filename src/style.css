@@ -58,23 +58,38 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
 [data-rarity="epic"] { --rarity: #a335ee; }
 [data-rarity="legendary"] { --rarity: #ff8000; }
 
-/* The board in the middle; who's here on its left, the controls on its right. Narrow: stacked, board first. */
+/* Three layouts, by the room Discord gives the Activity:
+   - wide (desktop, enlarged): who's here | the board | the controls;
+   - medium (desktop, Discord's usual panel): the board | the controls with who's here under them;
+   - narrow (phones): everything stacked, board first.
+   The board also never gets taller than the window, so it's never cut off at the bottom. */
 .puzzle {
   width: min(100%, 80rem);
   display: grid;
   grid-template-columns: 1fr minmax(0, 30rem) 1fr;
+  grid-template-areas: "players board info";
   gap: 24px;
   align-items: start;
 }
-.puzzle > .players { justify-self: end; }
-.puzzle-info { justify-self: start; }
-@media (max-width: 860px) {
-  .puzzle { grid-template-columns: minmax(0, 30rem); justify-content: center; }
+.puzzle > .players { grid-area: players; justify-self: end; }
+.board-col { grid-area: board; }
+.puzzle-info { grid-area: info; justify-self: start; }
+@media (max-width: 1100px) {
+  .puzzle {
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+    grid-template-areas: "board info" "board players";
+    grid-template-rows: auto 1fr;
+    width: min(100%, 56rem);
+    gap: 16px 24px;
+  }
   .puzzle > .players, .puzzle-info { justify-self: stretch; width: 100%; max-width: none; }
-  .board-col { order: -1; }
 }
-.board-col { display: grid; gap: 12px; min-width: 0; }
-.board-wrap { position: relative; width: 100%; }
+@media (max-width: 640px) {
+  .puzzle { grid-template-columns: minmax(0, 30rem); grid-template-areas: "board" "info" "players"; grid-template-rows: none; justify-content: center; }
+}
+.board-col { display: grid; gap: 12px; min-width: 0; justify-items: center; }
+.rivals { justify-self: stretch; }
+.board-wrap { position: relative; width: min(100%, calc(100dvh - 170px)); min-width: 15rem; justify-self: center; }
 #board {
   display: block;
   width: 100%;
