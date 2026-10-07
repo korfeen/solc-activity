@@ -6,6 +6,7 @@ the same guild picture. Sister project of the [SOLC addon](https://github.com/ko
 - `src/` the Activity page (TypeScript, Vite)
 - `worker/` the Cloudflare Worker: serves the page and `/api/token` (Discord login)
 - `public/fonts/` Germania One and Finger Paint, as in the addon (SIL Open Font License, see the OFL files)
+- `src/generated/art.json` and `public/art/` the picture layers, built from the addon by `npm run art` (see below)
 
 ## One-time setup
 
@@ -40,3 +41,6 @@ Join a voice channel in the guild server, click the **rocket (Activities)** butt
 - `npm run dev` + `npm run worker`: run it locally at <http://localhost:5173>. Outside Discord it shows a
   preview with made-up players. For a local login, put `DISCORD_CLIENT_SECRET=...` in `.dev.vars`.
 - `npm run check`: type-check only.
+- `npm run art`: rebuild the picture art after the addon's art changes. It runs the addon's `MintArt.lua` and
+  `Minting.lua` (from `../SOLC`, or `SOLC_ADDON=<path>`) and crops the source PNGs in `%USERPROFILE%\killtracker-art`.
+  The results are committed, so deploying doesn't need the source art.

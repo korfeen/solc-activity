@@ -1,7 +1,46 @@
 import { connect, inDiscord, type Player } from "./discord";
+import { drawPicture, pictureRarity, rollTraits, traitLines, type Rarity } from "./pictures";
 
 const status = document.getElementById("status")!;
 const list = document.getElementById("players")!;
+
+// The rolled picture (M2: pictures look as in the game's Gallery).
+const canvas = document.getElementById("picture") as HTMLCanvasElement;
+const rarityLine = document.getElementById("picture-rarity")!;
+const traitList = document.getElementById("traits")!;
+const rollButton = document.getElementById("roll") as HTMLButtonElement;
+const RARITY_NAMES: Record<Rarity, string> = { uncommon: "Uncommon", rare: "Rare", epic: "Epic", legendary: "Legendary" };
+
+async function showRoll() {
+  const traits = rollTraits();
+  const rarity = pictureRarity(traits);
+  rollButton.disabled = true;
+  try {
+    await drawPicture(canvas, traits);
+  } catch (error) {
+    rarityLine.textContent = error instanceof Error ? error.message : String(error);
+    return;
+  } finally {
+    rollButton.disabled = false;
+  }
+  canvas.dataset.rarity = rarity;
+  rarityLine.dataset.rarity = rarity;
+  rarityLine.textContent = `${RARITY_NAMES[rarity]} picture`;
+  traitList.replaceChildren(
+    ...traitLines(traits).map((line) => {
+      const item = document.createElement("li");
+      const layer = document.createElement("span");
+      layer.textContent = line.layer;
+      const name = document.createElement("span");
+      name.textContent = line.name;
+      name.dataset.rarity = line.rarity;
+      item.append(layer, name);
+      return item;
+    }),
+  );
+}
+rollButton.addEventListener("click", showRoll);
+showRoll();
 
 function renderPlayers(players: Player[], me?: Player) {
   list.replaceChildren(

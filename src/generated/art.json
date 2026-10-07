@@ -1,0 +1,791 @@
+{
+ "density": 512,
+ "weights": {
+  "uncommon": 25,
+  "rare": 10,
+  "epic": 4,
+  "legendary": 1
+ },
+ "scores": {
+  "uncommon": 1,
+  "rare": 2,
+  "epic": 3,
+  "legendary": 4
+ },
+ "tiers": [
+  {
+   "rarity": "legendary",
+   "share": 0.015
+  },
+  {
+   "rarity": "epic",
+   "share": 0.05
+  },
+  {
+   "rarity": "rare",
+   "share": 0.17
+  }
+ ],
+ "inFront": [
+  "eye_mask_pushed_up",
+  "monocle"
+ ],
+ "layers": [
+  {
+   "key": "background",
+   "name": "Background",
+   "options": [
+    {
+     "id": "clubhouse_lounge",
+     "name": "Clubhouse Lounge",
+     "rarity": "uncommon",
+     "image": "Background/clubhouse_lounge.png"
+    },
+    {
+     "id": "golf_course_at_dawn",
+     "name": "Golf Course at Dawn",
+     "rarity": "uncommon",
+     "image": "Background/golf_course_at_dawn.png"
+    },
+    {
+     "id": "hammock_between_two_trees",
+     "name": "Hammock between Two Trees",
+     "rarity": "uncommon",
+     "image": "Background/hammock_between_two_trees.png"
+    },
+    {
+     "id": "moonlit_fairway",
+     "name": "Moonlit Fairway",
+     "rarity": "uncommon",
+     "image": "Background/moonlit_fairway.png"
+    },
+    {
+     "id": "spa_steam_room",
+     "name": "Spa Steam Room",
+     "rarity": "uncommon",
+     "image": "Background/spa_steam_room.png"
+    },
+    {
+     "id": "swamp_hot_spring",
+     "name": "Swamp Hot Spring",
+     "rarity": "uncommon",
+     "image": "Background/swamp_hot_spring.png"
+    },
+    {
+     "id": "pool_with_floaties",
+     "name": "Pool with Floaties",
+     "rarity": "epic",
+     "image": "Background/pool_with_floaties.png"
+    },
+    {
+     "id": "ancient_treasure_lounge",
+     "name": "Ancient Treasure Lounge",
+     "rarity": "legendary",
+     "image": "Background/ancient_treasure_lounge.png"
+    },
+    {
+     "id": "dragon_over_the_fairway",
+     "name": "Dragon over the Fairway",
+     "rarity": "legendary",
+     "image": "Background/dragon_over_the_fairway.png"
+    },
+    {
+     "id": "floating_sky_spa",
+     "name": "Floating Sky Spa",
+     "rarity": "legendary",
+     "image": "Background/floating_sky_spa.png"
+    },
+    {
+     "id": "ghost_ship_cove",
+     "name": "Ghost Ship Cove",
+     "rarity": "legendary",
+     "image": "Background/ghost_ship_cove.png"
+    }
+   ]
+  },
+  {
+   "key": "skin",
+   "name": "Skin",
+   "options": [
+    {
+     "id": "moss",
+     "name": "Moss",
+     "rarity": "uncommon",
+     "image": "Skin/moss.png"
+    },
+    {
+     "id": "mud_brown",
+     "name": "Mud Brown",
+     "rarity": "uncommon",
+     "image": "Skin/mud_brown.png"
+    },
+    {
+     "id": "swamp_green",
+     "name": "Swamp Green",
+     "rarity": "uncommon",
+     "image": "Skin/swamp_green.png"
+    },
+    {
+     "id": "pale_lavender",
+     "name": "Pale Lavender",
+     "rarity": "rare",
+     "image": "Skin/pale_lavender.png"
+    },
+    {
+     "id": "slate_gray",
+     "name": "Slate Gray",
+     "rarity": "rare",
+     "image": "Skin/slate_gray.png"
+    },
+    {
+     "id": "sunburnt_red",
+     "name": "Sunburnt Red",
+     "rarity": "rare",
+     "image": "Skin/sunburnt_red.png"
+    },
+    {
+     "id": "celestial_blue",
+     "name": "Celestial Blue",
+     "rarity": "legendary",
+     "image": "Skin/celestial_blue.png"
+    },
+    {
+     "id": "enchanted_jade",
+     "name": "Enchanted Jade",
+     "rarity": "legendary",
+     "image": "Skin/enchanted_jade.png"
+    },
+    {
+     "id": "gold",
+     "name": "Gold",
+     "rarity": "legendary",
+     "image": "Skin/gold.png"
+    },
+    {
+     "id": "obsidian_ember",
+     "name": "Obsidian Ember",
+     "rarity": "legendary",
+     "image": "Skin/obsidian_ember.png"
+    },
+    {
+     "id": "sea_cursed_teal",
+     "name": "Sea Cursed Teal",
+     "rarity": "legendary",
+     "image": "Skin/sea_cursed_teal.png"
+    }
+   ]
+  },
+  {
+   "key": "outfit",
+   "name": "Outfit",
+   "options": [
+    {
+     "id": "fluffy_bathrobe",
+     "name": "Fluffy Bathrobe",
+     "rarity": "uncommon",
+     "image": "Outfit/fluffy_bathrobe.png"
+    },
+    {
+     "id": "golf_polo",
+     "name": "Golf Polo",
+     "rarity": "uncommon",
+     "image": "Outfit/golf_polo.png"
+    },
+    {
+     "id": "loincloth_and_member_sash",
+     "name": "Loincloth and Member Sash",
+     "rarity": "uncommon",
+     "image": "Outfit/loincloth_and_member_sash.png"
+    },
+    {
+     "id": "spa_towel",
+     "name": "Spa Towel",
+     "rarity": "uncommon",
+     "image": "Outfit/spa_towel.png",
+     "rect": [
+      0,
+      0.75,
+      1,
+      0.25
+     ]
+    },
+    {
+     "id": "striped_pajamas",
+     "name": "Striped Pajamas",
+     "rarity": "uncommon",
+     "image": "Outfit/striped_pajamas.png"
+    },
+    {
+     "id": "blazer_with_club_crest",
+     "name": "Blazer with Club Crest",
+     "rarity": "rare",
+     "image": "Outfit/blazer_with_club_crest.png"
+    },
+    {
+     "id": "onesie",
+     "name": "Onesie",
+     "rarity": "rare",
+     "image": "Outfit/onesie.png"
+    },
+    {
+     "id": "tweed_vest",
+     "name": "Tweed Vest",
+     "rarity": "rare",
+     "image": "Outfit/tweed_vest.png"
+    },
+    {
+     "id": "pirate_captain_coat",
+     "name": "Pirate Captain Coat",
+     "rarity": "epic",
+     "image": "Outfit/pirate_captain_coat.png"
+    },
+    {
+     "id": "celestial_pajamas",
+     "name": "Celestial Pajamas",
+     "rarity": "legendary",
+     "image": "Outfit/celestial_pajamas.png"
+    },
+    {
+     "id": "dragonhide_golf_jacket",
+     "name": "Dragonhide Golf Jacket",
+     "rarity": "legendary",
+     "image": "Outfit/dragonhide_golf_jacket.png"
+    },
+    {
+     "id": "royal_nap_robe",
+     "name": "Royal Nap Robe",
+     "rarity": "legendary",
+     "image": "Outfit/royal_nap_robe.png"
+    }
+   ]
+  },
+  {
+   "key": "expression",
+   "name": "Expression",
+   "options": [
+    {
+     "id": "drooling",
+     "name": "Drooling",
+     "rarity": "uncommon",
+     "image": "Expression/drooling.png",
+     "rect": [
+      0.5158,
+      0.2385,
+      0.0625,
+      0.125
+     ]
+    },
+    {
+     "id": "mouth_hanging_open",
+     "name": "Mouth Hanging Open",
+     "rarity": "uncommon",
+     "image": "Expression/%s/mouth_hanging_open.png",
+     "rect": [
+      0.3766,
+      0.1409,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "smug_smile",
+     "name": "Smug Smile",
+     "rarity": "uncommon",
+     "image": "Expression/%s/smug_smile.png",
+     "rect": [
+      0.3766,
+      0.1409,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "snoring_zzz_bubble",
+     "name": "Snoring Zzz Bubble",
+     "rarity": "uncommon",
+     "image": "Expression/snoring_zzz_bubble.png",
+     "rect": [
+      0.5337,
+      0.1723,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "tiny_snore_bubble",
+     "name": "Tiny Snore Bubble",
+     "rarity": "uncommon",
+     "image": "Expression/tiny_snore_bubble.png",
+     "rect": [
+      0.3873,
+      0.1857,
+      0.125,
+      0.0625
+     ]
+    },
+    {
+     "id": "mid_yawn",
+     "name": "Mid Yawn",
+     "rarity": "rare",
+     "image": "Expression/%s/mid_yawn.png",
+     "rect": [
+      0.3766,
+      0.1409,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "sea_dog_grin",
+     "name": "Sea Dog Grin",
+     "rarity": "epic",
+     "image": "Expression/%s/sea_dog_grin.png",
+     "rect": [
+      0.3766,
+      0.1409,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "crystal_drool",
+     "name": "Crystal Drool",
+     "rarity": "legendary",
+     "image": "Expression/crystal_drool.png",
+     "rect": [
+      0.527,
+      0.259,
+      0.0625,
+      0.0625
+     ]
+    },
+    {
+     "id": "ember_yawn",
+     "name": "Ember Yawn",
+     "rarity": "legendary",
+     "image": "Expression/%s/ember_yawn.png",
+     "rect": [
+      0.3766,
+      0.1409,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "stardust_snore",
+     "name": "Stardust Snore",
+     "rarity": "legendary",
+     "image": "Expression/stardust_snore.png",
+     "rect": [
+      0.5237,
+      0.1739,
+      0.25,
+      0.125
+     ]
+    }
+   ]
+  },
+  {
+   "key": "eyes",
+   "name": "Eyes",
+   "options": [
+    {
+     "id": "fully_asleep",
+     "name": "Fully Asleep",
+     "rarity": "uncommon",
+     "image": "Eyes/%s/fully_asleep.png",
+     "rect": [
+      0.3894,
+      0.1309,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "heavy_bags",
+     "name": "Heavy Bags",
+     "rarity": "uncommon",
+     "image": "Eyes/%s/heavy_bags.png",
+     "rect": [
+      0.3894,
+      0.1357,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "bloodshot",
+     "name": "Bloodshot",
+     "rarity": "rare",
+     "image": "Eyes/%s/bloodshot.png",
+     "rect": [
+      0.3906,
+      0.1297,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "cucumber_slices",
+     "name": "Cucumber Slices",
+     "rarity": "rare",
+     "image": "Eyes/cucumber_slices.png",
+     "rect": [
+      0.3858,
+      0.1189,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "single_eye_open",
+     "name": "Single Eye Open",
+     "rarity": "rare",
+     "image": "Eyes/%s/single_eye_open.png",
+     "rect": [
+      0.4056,
+      0.1289,
+      0.125,
+      0.125
+     ]
+    },
+    {
+     "id": "dreamy_swirl",
+     "name": "Dreamy Swirl",
+     "rarity": "epic",
+     "image": "Eyes/%s/dreamy_swirl.png",
+     "rect": [
+      0.3902,
+      0.1297,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "pirate_eyepatch",
+     "name": "Pirate Eyepatch",
+     "rarity": "epic",
+     "image": "Eyes/pirate_eyepatch.png",
+     "rect": [
+      0.3894,
+      0.1046,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "dragon_gaze",
+     "name": "Dragon Gaze",
+     "rarity": "legendary",
+     "image": "Eyes/%s/dragon_gaze.png",
+     "rect": [
+      0.3902,
+      0.1297,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "golden_oracle",
+     "name": "Golden Oracle",
+     "rarity": "legendary",
+     "image": "Eyes/%s/golden_oracle.png",
+     "rect": [
+      0.3902,
+      0.1297,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "starlit_dreamer",
+     "name": "Starlit Dreamer",
+     "rarity": "legendary",
+     "image": "Eyes/%s/starlit_dreamer.png",
+     "rect": [
+      0.3902,
+      0.1297,
+      0.25,
+      0.125
+     ]
+    }
+   ]
+  },
+  {
+   "key": "accessory",
+   "name": "Accessory",
+   "options": [
+    {
+     "id": "eye_mask_pushed_up",
+     "name": "Eye Mask Pushed Up",
+     "rarity": "uncommon",
+     "image": "Accessory/eye_mask_pushed_up.png",
+     "rect": [
+      0.3822,
+      0.0987,
+      0.25,
+      0.0625
+     ]
+    },
+    {
+     "id": "membership_card",
+     "name": "Membership Card",
+     "rarity": "uncommon",
+     "image": "Accessory/membership_card.png",
+     "rect": [
+      0.2436,
+      0.1603,
+      0.5,
+      0.5
+     ]
+    },
+    {
+     "id": "gold_chain",
+     "name": "Gold Chain",
+     "rarity": "rare",
+     "image": "Accessory/gold_chain.png",
+     "rect": [
+      0.2452,
+      0.2327,
+      0.5,
+      0.25
+     ]
+    },
+    {
+     "id": "monocle",
+     "name": "Monocle",
+     "rarity": "rare",
+     "image": "Accessory/monocle.png",
+     "rect": [
+      0.5049,
+      0.0947,
+      0.125,
+      0.25
+     ]
+    },
+    {
+     "id": "pet_frog",
+     "name": "Pet Frog",
+     "rarity": "rare",
+     "image": "Accessory/pet_frog.png",
+     "rect": [
+      0.6241,
+      0.268,
+      0.125,
+      0.125
+     ]
+    },
+    {
+     "id": "pet_snail",
+     "name": "Pet Snail",
+     "rarity": "rare",
+     "image": "Accessory/pet_snail.png",
+     "rect": [
+      0.2553,
+      0.2569,
+      0.125,
+      0.125
+     ]
+    },
+    {
+     "id": "floating_sheep",
+     "name": "Floating Sheep",
+     "rarity": "epic",
+     "image": "Accessory/floating_sheep.png",
+     "rect": [
+      0.6358,
+      0.1457,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "sleepy_parrot",
+     "name": "Sleepy Parrot",
+     "rarity": "epic",
+     "image": "Accessory/sleepy_parrot.png",
+     "rect": [
+      0.184,
+      0.1784,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "moonstone_pendant",
+     "name": "Moonstone Pendant",
+     "rarity": "legendary",
+     "image": "Accessory/moonstone_pendant.png",
+     "rect": [
+      0.242,
+      0.2705,
+      0.5,
+      0.25
+     ]
+    },
+    {
+     "id": "phoenix_on_shoulder",
+     "name": "Phoenix on Shoulder",
+     "rarity": "legendary",
+     "image": "Accessory/phoenix_on_shoulder.png",
+     "rect": [
+      0.5922,
+      0.2171,
+      0.125,
+      0.25
+     ]
+    },
+    {
+     "id": "pocket_portal",
+     "name": "Pocket Portal",
+     "rarity": "legendary",
+     "image": "Accessory/pocket_portal.png",
+     "rect": [
+      0.2448,
+      0.1595,
+      0.5,
+      0.5
+     ]
+    }
+   ]
+  },
+  {
+   "key": "headwear",
+   "name": "Headwear",
+   "options": [
+    {
+     "id": "bucket_hat",
+     "name": "Bucket Hat",
+     "rarity": "uncommon",
+     "image": "Headwear/bucket_hat.png",
+     "rect": [
+      0.2556,
+      0.0205,
+      0.5,
+      0.25
+     ]
+    },
+    {
+     "id": "nightcap_with_pom_pom",
+     "name": "Nightcap with Pom Pom",
+     "rarity": "uncommon",
+     "image": "Headwear/nightcap_with_pom_pom.png",
+     "rect": [
+      0.2986,
+      0.0118,
+      0.5,
+      0.25
+     ]
+    },
+    {
+     "id": "sun_visor",
+     "name": "Sun Visor",
+     "rarity": "uncommon",
+     "image": "Headwear/sun_visor.png",
+     "rect": [
+      0.3989,
+      0.085,
+      0.25,
+      0.125
+     ]
+    },
+    {
+     "id": "captain_tricorn",
+     "name": "Captain Tricorn",
+     "rarity": "rare",
+     "image": "Headwear/captain_tricorn.png",
+     "rect": [
+      0.3022,
+      0.0038,
+      0.5,
+      0.25
+     ]
+    },
+    {
+     "id": "flower_crown",
+     "name": "Flower Crown",
+     "rarity": "rare",
+     "image": "Headwear/flower_crown.png",
+     "rect": [
+      0.262,
+      0.0806,
+      0.5,
+      0.125
+     ]
+    },
+    {
+     "id": "tiny_top_hat",
+     "name": "Tiny Top Hat",
+     "rarity": "rare",
+     "image": "Headwear/tiny_top_hat.png",
+     "rect": [
+      0.3551,
+      0,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "towel_turban",
+     "name": "Towel Turban",
+     "rarity": "rare",
+     "image": "Headwear/towel_turban.png",
+     "rect": [
+      0.3782,
+      0,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "astral_nightcap",
+     "name": "Astral Nightcap",
+     "rarity": "epic",
+     "image": "Headwear/astral_nightcap.png",
+     "rect": [
+      0.2998,
+      0.0118,
+      0.5,
+      0.25
+     ]
+    },
+    {
+     "id": "bald_with_fly",
+     "name": "Bald with Fly",
+     "rarity": "epic",
+     "image": "Headwear/bald_with_fly.png",
+     "rect": [
+      0.5441,
+      0.0808,
+      0.0625,
+      0.0625
+     ]
+    },
+    {
+     "id": "crown_of_eternal_rest",
+     "name": "Crown of Eternal Rest",
+     "rarity": "legendary",
+     "image": "Headwear/crown_of_eternal_rest.png",
+     "rect": [
+      0.3822,
+      0,
+      0.25,
+      0.25
+     ]
+    },
+    {
+     "id": "dragon_hatchling_hat",
+     "name": "Dragon Hatchling Hat",
+     "rarity": "legendary",
+     "image": "Headwear/dragon_hatchling_hat.png",
+     "rect": [
+      0.2488,
+      0,
+      0.5,
+      0.5
+     ]
+    }
+   ]
+  }
+ ]
+}
