@@ -1,8 +1,8 @@
-import { Board } from "./board";
+import { Board, paintBoard } from "./board";
 import { connect, inDiscord, type Player } from "./discord";
 import { pictureRarity, rollTraits, traitLines, type Rarity, type Traits } from "./pictures";
 import type { Race, RoomState } from "./protocol";
-import { DEFAULT_SIZE, encodeMoves, newSeed, type Mode } from "./puzzle";
+import { applyMoves, countInPlace, decodeMoves, DEFAULT_SIZE, encodeMoves, isSolved, newSeed, scramble, type Mode } from "./puzzle";
 import { RoomClient } from "./room";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -11,6 +11,7 @@ const list = $("players");
 const canvas = $<HTMLCanvasElement>("board");
 const board = new Board(canvas);
 const countdown = $("countdown");
+const rivals = $("rivals");
 const raceButton = $<HTMLButtonElement>("race"), raceStatus = $("race-status");
 const puzzleTitle = $("puzzle-title");
 const timeText = $("time"), movesText = $("moves"), resultText = $("result"), hintText = $("hint");
@@ -35,6 +36,18 @@ let me: Player | undefined;
 let participants: Player[] = [];  // from Discord, until the room answers
 let room: RoomClient | undefined;
 let racing: Race | undefined;    // the race we're in, until it's over
+let shownRace: string | undefined; // the race whose picture the board has (for the mini-boards and replays)
+
+// A player's board in a race: its scramble with their moves so far.
+const scrambles = new Map<string, number[]>();
+function raceSlots(race: Race, id: string): number[] {
+  let start = scrambles.get(race.id);
+  if (!start) {
+    start = scramble(race.mode, race.seed, race.size);
+    scrambles.set(race.id, start);
+  }
+  return applyMoves(start, decodeMoves(race.moves?.[id] ?? ""));
+}
 
 // --- Who's here: the room's players with their race standing, or Discord's participant list ---
 
@@ -47,7 +60,7 @@ function standing(race: Race | null, id: string): string {
   }
   if (race.gaveUp.includes(id)) return "gave up";
   if (race.over) return "didn't finish";
-  return `${race.progress[id] ?? 0}/${race.size * race.size}`;
+  return `${countInPlace(raceSlots(race, id))}/${race.size * race.size}`;
 }
 
 function renderPlayers() {
@@ -79,6 +92,60 @@ function renderPlayers() {
       return item;
     }),
   );
+}
+
+// --- Everyone's boards in miniature: live while racing (not yours), all of them afterwards to replay ---
+
+const rivalCanvases = new Map<string, HTMLCanvasElement>();
+
+function renderRivals(race: Race | null) {
+  if (!race || race.id !== shownRace) {
+    rivals.replaceChildren();
+    rivalCanvases.clear();
+    return;
+  }
+  const players = new Map((room?.state.players ?? []).map((p) => [p.id, p]));
+  const shown = race.entrants.filter((id) => race.over || id !== me?.id);
+  const buttons = shown.map((id) => {
+    let canvas = rivalCanvases.get(id);
+    const button = (canvas?.parentElement as HTMLButtonElement | null) ?? document.createElement("button");
+    if (!canvas) {
+      button.type = "button";
+      button.className = "rival";
+      canvas = document.createElement("canvas");
+      const label = document.createElement("span");
+      button.append(canvas, label);
+      button.addEventListener("click", () => watchReplay(id));
+      rivalCanvases.set(id, canvas);
+    }
+    const finished = !!race.finishes[id];
+    const name = players.get(id)?.name ?? "Someone";
+    button.querySelector("span")!.textContent = name;
+    button.classList.toggle("done", finished);
+    // Replays once the race is over, for anyone with a checked solve.
+    button.disabled = !(race.over && finished);
+    button.title = button.disabled ? name : `Watch ${name}'s solve`;
+    const side = Math.round((canvas.clientWidth || 104) * (window.devicePixelRatio || 1));
+    if (canvas.width !== side) canvas.width = canvas.height = side;
+    const slots = raceSlots(race, id);
+    const done = finished || isSolved(slots);
+    paintBoard(canvas.getContext("2d")!, side, board.pictureCanvas, slots, race.size,
+      { gap: race.mode === "sliding" && !done, grid: !done });
+    return button;
+  });
+  rivals.replaceChildren(...buttons);
+}
+
+function watchReplay(id: string) {
+  const race = room?.state.race;
+  if (!race || !race.over || race.id !== shownRace || racing || !race.moves?.[id]) return;
+  const name = room?.state.players.find((p) => p.id === id)?.name ?? "Someone";
+  const finish = race.finishes[id];
+  const detail = finish ? `, ${formatTime(finish.ms / 1000)} with ${finish.moves} moves` : "";
+  resultText.textContent = `Replay: ${name}${detail} (2× speed)`;
+  board.replay(race.mode, race.seed, race.size, decodeMoves(race.moves[id]), 2, () => {
+    resultText.textContent = `That was ${name}'s solve.`;
+  });
 }
 
 // --- The picture and the board ---
@@ -168,10 +235,13 @@ async function newPicture() {
     pictureButton.disabled = startButton.disabled = false;
   }
   showPicture(rolled);
+  shownRace = undefined;
+  renderRivals(null);
   toWhole();
 }
 
 function startPractice() {
+  board.stopReplay();
   const seed = newSeed();
   board.start(mode, seed, size);
   resetClock();
@@ -199,7 +269,9 @@ async function joinRace(race: Race) {
   await board.load(race.traits);
   if (racing?.id !== race.id) return;  // (it ended while the art loaded)
   showPicture(race.traits);
+  shownRace = race.id;
   board.showWhole(race.size);
+  renderRivals(race);
   window.clearInterval(countdownTimer);
   const step = () => {
     const left = race.startsAt - room!.serverNow();
@@ -244,13 +316,22 @@ function onRoomState(state: RoomState) {
     ? "Race everyone here on the same puzzle."
     : mine ? `Racing: ${race.mode}, ${race.size}×${race.size}` : "A race is on. You're in the next one.";
   renderPlayers();
+  renderRivals(race);
 }
 
 // --- Board events ---
 
+let sendTimer: number | undefined;
+
 board.onMove = (moves) => {
   movesText.textContent = `${moves} move${moves === 1 ? "" : "s"}`;
-  if (racing) room?.send({ type: "progress", raceId: racing.id, inPlace: board.inPlace() });
+  if (racing && !sendTimer) {
+    // Everyone's mini-board of you: your moves so far, a few times a second.
+    sendTimer = window.setTimeout(() => {
+      sendTimer = undefined;
+      if (racing && board.isPlaying) room?.send({ type: "moves", raceId: racing.id, moves: encodeMoves(board.recording) });
+    }, 250);
+  }
 };
 board.onSolved = (moves, seconds) => {
   timeText.textContent = formatTime(seconds);

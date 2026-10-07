@@ -93,3 +93,21 @@ export function decodeMoves(text: string): Move[] {
   }
   return moves;
 }
+
+// A scramble with moves applied (a mirrored or replayed board), skipping any that don't fit.
+export function applyMoves(slots: number[], moves: Move[]): number[] {
+  const out = [...slots];
+  for (const { a, b } of moves) {
+    if (out[a] !== undefined && out[b] !== undefined && a > 0 && b > 0) [out[a], out[b]] = [out[b], out[a]];
+  }
+  return out;
+}
+
+export function countInPlace(slots: number[]): number {
+  let count = 0;
+  for (let i = 1; i < slots.length; i++) if (slots[i] === i) count++;
+  return count;
+}
+
+// Encoded moves are 5 characters each from the replay alphabet.
+export const validMoveText = (text: string) => text.length % 5 === 0 && text.length <= 5 * 4000 && /^[0-9a-zA-Z+/]*$/.test(text);

@@ -1,11 +1,12 @@
 // The race room: one Durable Object per Activity session (named by Discord's instance id), holding everyone's
 // WebSocket. It checks who each player is with Discord, calls races (a rolled picture, mode, size and seed for
-// all), counts down on its own clock, and accepts a finish only when replaying the player's moves on the
-// scramble really solves it, timed by the server. Protocol: src/protocol.ts.
+// all), counts down on its own clock, passes everyone's moves around while racing (live mini-boards), and
+// accepts a finish only when replaying the player's moves on the scramble really solves it, timed by the
+// server; those moves are kept for replays. Protocol: src/protocol.ts.
 
 import { DurableObject } from "cloudflare:workers";
 import { rollTraits } from "../src/mint";
-import { decodeMoves, isSolved, newSeed, scramble, SIZES, type Mode } from "../src/puzzle";
+import { decodeMoves, isSolved, newSeed, scramble, SIZES, validMoveText, type Mode } from "../src/puzzle";
 import {
   COUNTDOWN_MS, RACE_LIMIT_MS,
   type ClientMessage, type Race, type RoomPlayer, type RoomState, type ServerMessage,
@@ -156,22 +157,25 @@ export class RaceRoom extends DurableObject<Env> {
         mode, size, seed: newSeed(), traits: rollTraits(),
         startsAt: now + COUNTDOWN_MS,
         entrants: this.players().map((p) => p.id),
-        progress: {}, finishes: {}, gaveUp: [], over: false,
+        moves: {}, finishes: {}, gaveUp: [], over: false,
       };
       await this.ctx.storage.setAlarm(this.race.startsAt + RACE_LIMIT_MS);
     } else if (!race || race.over || message.raceId !== race.id || !race.entrants.includes(player.id)) {
       return;
-    } else if (message.type === "progress") {
-      race.progress[player.id] = Math.max(0, Math.min(race.size * race.size, Math.floor(Number(message.inPlace) || 0)));
+    } else if (message.type === "moves") {
+      const moves = String(message.moves ?? "");
+      if (race.finishes[player.id] || now < race.startsAt || !validMoveText(moves)) return;
+      race.moves[player.id] = moves;
     } else if (message.type === "finish") {
       if (race.finishes[player.id] || now < race.startsAt) return;
-      const moves = this.check(race, String(message.moves ?? ""));
+      const encoded = String(message.moves ?? "");
+      const moves = validMoveText(encoded) ? this.check(race, encoded) : null;
       if (moves === null) {
         this.send(ws, { type: "error", now, message: "That solve didn't check out, so it wasn't counted." });
         return;
       }
       race.finishes[player.id] = { ms: now - race.startsAt, moves };
-      race.progress[player.id] = race.size * race.size;
+      race.moves[player.id] = encoded;  // the checked solve, for replays
     } else if (message.type === "giveUp") {
       if (!race.gaveUp.includes(player.id) && !race.finishes[player.id]) race.gaveUp.push(player.id);
     } else {

@@ -24,7 +24,7 @@ export interface Race {
   traits: Traits;
   startsAt: number;                     // server time the pieces scramble (after the countdown)
   entrants: string[];                   // player ids racing (everyone here when it was called)
-  progress: Record<string, number>;     // pieces in place, as reported while racing
+  moves: Record<string, string>;        // each racer's moves so far (encodeMoves); a finisher's are checked
   finishes: Record<string, Finish>;     // checked solves
   gaveUp: string[];
   over: boolean;                        // everyone finished, gave up or left, or the time ran out
@@ -38,7 +38,7 @@ export interface RoomState {
 export type ClientMessage =
   | { type: "hello"; token: string }                                  // the Discord access token
   | { type: "race"; mode: Mode; size: number }                        // call a race for everyone here
-  | { type: "progress"; raceId: string; inPlace: number }
+  | { type: "moves"; raceId: string; moves: string }                 // all of your moves so far, while racing
   | { type: "finish"; raceId: string; moves: string }                 // encodeMoves of the whole solve
   | { type: "giveUp"; raceId: string };
 

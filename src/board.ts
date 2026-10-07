@@ -6,8 +6,8 @@ import { drawPicture, type Traits } from "./pictures";
 import { isSolved, scramble, type Mode, type Move } from "./puzzle";
 
 const PICTURE = 600;  // the picture's pixels: every grid size (3, 4, 5) divides it
-const COLORS = { selected: "255, 209, 0", target: "77, 255, 77", hover: "255, 255, 255" };
 const GRID_LINE = "rgba(0, 0, 0, 0.55)";
+const COLORS = { selected: "255, 209, 0", target: "77, 255, 77", hover: "255, 255, 255" };
 
 export class Board {
   onMove?: (moves: number) => void;
@@ -25,6 +25,7 @@ export class Board {
   private selected?: number;  // slots
   private hovered?: number;
   private cursor?: number;
+  private replaying?: { moves: Move[]; next: number; started: number; speed: number; onDone?: () => void };
 
   constructor(private canvas: HTMLCanvasElement) {
     this.context = canvas.getContext("2d")!;
@@ -51,6 +52,7 @@ export class Board {
   }
 
   start(mode: Mode, seed: number, size: number) {
+    this.replaying = undefined;
     Object.assign(this, { mode, size, playing: true, moves: 0, selected: undefined, cursor: undefined });
     this.slots = scramble(mode, seed, size);
     this.recording = [];
@@ -61,6 +63,7 @@ export class Board {
 
   // The picture uncut (before a puzzle starts).
   showWhole(size = this.size) {
+    this.replaying = undefined;
     this.size = size;
     this.playing = false;
     this.selected = undefined;
@@ -75,6 +78,37 @@ export class Board {
   }
 
   get isPlaying() { return this.playing; }
+  get isReplaying() { return this.replaying !== undefined; }
+  get pictureCanvas() { return this.picture; }  // what the pieces are cut from (for the mini-boards)
+
+  // Plays back a recorded solve: the same scramble, then each move at its time, speed times as fast.
+  replay(mode: Mode, seed: number, size: number, moves: Move[], speed = 2, onDone?: () => void) {
+    Object.assign(this, { mode, size, playing: false, selected: undefined });
+    this.slots = scramble(mode, seed, size);
+    this.replaying = { moves, next: 0, started: performance.now(), speed, onDone };
+    const step = () => {
+      const replay = this.replaying;
+      if (!replay) return;
+      const at = ((performance.now() - replay.started) / 1000) * replay.speed;
+      while (replay.next < replay.moves.length && replay.moves[replay.next].t <= at) {
+        const { a, b } = replay.moves[replay.next++];
+        if (this.slots[a] !== undefined && this.slots[b] !== undefined) [this.slots[a], this.slots[b]] = [this.slots[b], this.slots[a]];
+      }
+      if (replay.next >= replay.moves.length) {
+        this.replaying = undefined;
+        this.draw();
+        replay.onDone?.();
+        return;
+      }
+      this.draw();
+      requestAnimationFrame(step);
+    };
+    step();
+  }
+
+  stopReplay() {
+    this.replaying = undefined;
+  }
 
   // How many pieces are in their place.
   inPlace(): number {
@@ -181,41 +215,17 @@ export class Board {
   draw() {
     const context = this.context, side = this.canvas.width, size = this.size;
     if (!side || this.slots.length < 2) return;
-    const source = PICTURE / size;
-    // Cuts on whole canvas pixels: a cut at a fraction of a pixel blurs into a faint seam between pieces.
+    const active = this.playing || this.replaying !== undefined;
+    paintBoard(context, side, this.picture, this.slots, size, {
+      gap: this.mode === "sliding" && active,
+      grid: active,
+    });
     const edge = (i: number) => Math.round((i * side) / size);
-    const box = (slot: number) => {
-      const col = (slot - 1) % size, row = Math.floor((slot - 1) / size);
-      return { x: edge(col), y: edge(row), w: edge(col + 1) - edge(col), h: edge(row + 1) - edge(row) };
-    };
-    context.clearRect(0, 0, side, side);
-    if (!this.playing && isSolved(this.slots)) {
-      context.drawImage(this.picture, 0, 0, side, side);  // whole: one piece, no seams at all
-      return;
-    }
-    context.fillStyle = "#0b0c0f";
-    context.fillRect(0, 0, side, side);
-    const gapPiece = this.mode === "sliding" && this.playing ? size * size : -1;
-    for (let slot = 1; slot <= size * size; slot++) {
-      const piece = this.slots[slot];
-      if (piece === gapPiece) continue;
-      const { x, y, w, h } = box(slot);
-      const sx = ((piece - 1) % size) * source, sy = Math.floor((piece - 1) / size) * source;
-      context.drawImage(this.picture, sx, sy, source, source, x, y, w, h);
-    }
-    // Grid lines between the pieces while playing, so the cuts are visible.
-    if (this.playing) {
-      context.fillStyle = GRID_LINE;
-      const width = Math.max(1, Math.round(side / 300));
-      for (let i = 1; i < size; i++) {
-        context.fillRect(edge(i) - Math.floor(width / 2), 0, width, side);
-        context.fillRect(0, edge(i) - Math.floor(width / 2), side, width);
-      }
-    }
     for (let slot = 1; slot <= size * size; slot++) {
       const state = this.state(slot);
       if (!state) continue;
-      const { x, y, w: cell } = box(slot);
+      const col = (slot - 1) % size, row = Math.floor((slot - 1) / size);
+      const x = edge(col), y = edge(row), cell = edge(col + 1) - x;
       const line = Math.max(2, side / 160);
       if (state !== "hover") {
         context.fillStyle = `rgba(${COLORS[state]}, 0.18)`;
@@ -224,6 +234,40 @@ export class Board {
       context.strokeStyle = `rgb(${COLORS[state]})`;
       context.lineWidth = line;
       context.strokeRect(x + line / 2, y + line / 2, cell - line, cell - line);
+    }
+  }
+}
+
+// Draws a board's pieces (slots) cut from picture onto a side x side canvas: the main board and the live
+// mini-boards. gap: leave the last piece out (sliding, while playing); grid: lines between the pieces.
+// A solved board that isn't being played is drawn whole, in one piece (no seams).
+export function paintBoard(context: CanvasRenderingContext2D, side: number, picture: HTMLCanvasElement,
+  slots: number[], size: number, options: { gap: boolean; grid: boolean }) {
+  const source = picture.width / size;
+  // Cuts on whole canvas pixels: a cut at a fraction of a pixel blurs into a faint seam between pieces.
+  const edge = (i: number) => Math.round((i * side) / size);
+  context.clearRect(0, 0, side, side);
+  if (!options.grid && isSolved(slots)) {
+    context.drawImage(picture, 0, 0, side, side);
+    return;
+  }
+  context.fillStyle = "#0b0c0f";
+  context.fillRect(0, 0, side, side);
+  const gapPiece = options.gap ? size * size : -1;
+  for (let slot = 1; slot <= size * size; slot++) {
+    const piece = slots[slot];
+    if (piece === gapPiece) continue;
+    const col = (slot - 1) % size, row = Math.floor((slot - 1) / size);
+    const x = edge(col), y = edge(row);
+    const sx = ((piece - 1) % size) * source, sy = Math.floor((piece - 1) / size) * source;
+    context.drawImage(picture, sx, sy, source, source, x, y, edge(col + 1) - x, edge(row + 1) - y);
+  }
+  if (options.grid) {
+    context.fillStyle = GRID_LINE;
+    const width = Math.max(1, Math.round(side / 300));
+    for (let i = 1; i < size; i++) {
+      context.fillRect(edge(i) - Math.floor(width / 2), 0, width, side);
+      context.fillRect(0, edge(i) - Math.floor(width / 2), side, width);
     }
   }
 }

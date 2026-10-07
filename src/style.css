@@ -71,8 +71,9 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
 @media (max-width: 860px) {
   .puzzle { grid-template-columns: minmax(0, 30rem); justify-content: center; }
   .puzzle > .players, .puzzle-info { justify-self: stretch; width: 100%; max-width: none; }
-  .board-wrap { order: -1; }
+  .board-col { order: -1; }
 }
+.board-col { display: grid; gap: 12px; min-width: 0; }
 .board-wrap { position: relative; width: 100%; }
 #board {
   display: block;
@@ -180,3 +181,14 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
 .countdown[hidden] { display: none; }  /* (display: grid above would override hidden) */
 .players li .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .players li .standing { flex: none; color: var(--gold); font-variant-numeric: tabular-nums; font-size: 0.9rem; }
+
+/* Everyone's boards in miniature: live while racing, click one afterwards to replay it on the big board. */
+.rivals { display: flex; flex-wrap: wrap; gap: 10px; }
+.rivals:empty { display: none; }
+.rival { display: grid; gap: 4px; justify-items: center; width: 6.5rem; padding: 0; background: none; border: 0; color: var(--cream); font: inherit; }
+.rival canvas { width: 100%; aspect-ratio: 1; border: 2px solid var(--line); border-radius: 4px; background: var(--panel); }
+.rival.done canvas { border-color: var(--gold); }
+.rival span { font-size: 0.8rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rival:not(:disabled) { cursor: pointer; }
+.rival:not(:disabled):hover canvas { border-color: var(--cream); }
+.rival:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
