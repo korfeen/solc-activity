@@ -2,20 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>SOLC Puzzle</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <main id="app">
+      <div class="toggles">
+        <button id="ogre-toggle" type="button" aria-pressed="false" title="Ogre mode: ogre words and crayon letters">OGRE</button>
+        <button id="mute" type="button" aria-pressed="false" aria-label="Sound on" title="Sound">🔊</button>
+      </div>
       <header class="sign">
         <h1>Sleepy Ogre Leisure Club</h1>
-        <p class="sub">Puzzle races</p>
+        <p class="sub" data-crayon data-ogre="SMASH PUZZL">Puzzle races</p>
       </header>
       <p id="status" class="status">Waking the ogre…</p>
       <section class="puzzle" aria-labelledby="puzzle-title">
         <section class="players" aria-labelledby="players-title">
-          <h2 id="players-title">In the cave</h2>
+          <h2 id="players-title" data-crayon data-ogre="CAVE">In the cave</h2>
           <ul id="players"></ul>
         </section>
         <div class="board-col">
@@ -27,13 +31,13 @@
         </div>
         <div class="puzzle-info">
           <div class="race-box">
-            <button id="race" type="button" class="primary" disabled>Race everyone</button>
+            <button id="race" type="button" class="primary" data-crayon data-ogre="SMASH RACE" disabled>Race everyone</button>
             <p id="race-status" class="race-status">Connecting to the room…</p>
           </div>
-          <h2 id="puzzle-title">Practice</h2>
+          <h2 id="puzzle-title" data-crayon>Practice</h2>
           <div class="choices" role="group" aria-label="Mode">
-            <button type="button" data-mode="swap" aria-pressed="true">Swap</button>
-            <button type="button" data-mode="sliding" aria-pressed="false">Sliding</button>
+            <button type="button" data-mode="swap" aria-pressed="true" data-crayon data-ogre="SWAP">Swap</button>
+            <button type="button" data-mode="sliding" aria-pressed="false" data-crayon data-ogre="SLIDE">Sliding</button>
           </div>
           <div class="choices" role="group" aria-label="Size">
             <button type="button" data-size="3" aria-pressed="false">3×3</button>
@@ -46,12 +50,12 @@
           </div>
           <p id="result" class="result"></p>
           <div class="actions">
-            <button id="start" type="button" class="primary">Start</button>
-            <button id="new-picture" type="button">New picture</button>
+            <button id="start" type="button" class="primary" data-crayon>Start</button>
+            <button id="new-picture" type="button" data-crayon data-ogre="NEW PIX">New picture</button>
           </div>
           <p id="hint" class="hint"></p>
           <details class="about">
-            <summary><span id="picture-rarity" class="rarity"></span> picture</summary>
+            <summary><span id="picture-rarity" class="rarity"></span> <span data-ogre="PIX">picture</span></summary>
             <ul id="traits" class="traits"></ul>
             <p id="seed" class="seed"></p>
           </details>

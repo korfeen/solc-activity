@@ -192,3 +192,37 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
 .rival:not(:disabled) { cursor: pointer; }
 .rival:not(:disabled):hover canvas { border-color: var(--cream); }
 .rival:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+
+/* The OGRE and sound switches, top right. */
+#app { position: relative; }
+.toggles { position: absolute; top: max(10px, env(safe-area-inset-top)); right: 12px; display: flex; gap: 6px; }
+.toggles button {
+  font: 400 1rem/1 var(--display);
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 12px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.toggles button[aria-pressed="true"] { color: var(--gold); border-color: var(--gold); }
+#ogre-toggle[aria-pressed="true"] { font-family: "Finger Paint", var(--display); background: #2a2614; }
+.toggles button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* Ogre mode: crayon letters (each letter its own colour, size and tilt, from src/ogre.ts) in Finger Paint. */
+.crayon-letter { display: inline-block; text-shadow: 0 2px 0 rgba(20, 10, 4, 0.85); }
+.ogre [data-crayon] { font-family: "Finger Paint", var(--display); letter-spacing: 0.02em; }
+.ogre .sub { font-size: 1.5rem; }
+.ogre .race-status, .ogre .result, .ogre .hint, .ogre .status { text-transform: uppercase; letter-spacing: 0.03em; }
+
+/* Touch: taps play at once (no double-tap zoom delay), and targets are big enough for thumbs. */
+button { touch-action: manipulation; }
+@media (max-width: 560px) {
+  #app { gap: 16px; padding-inline: 10px; }
+  .sign h1 { font-size: 1.7rem; padding-inline: 70px 70px; }
+  .puzzle { gap: 16px; }
+  .choices button, .actions button { flex: 1; min-height: 44px; }
+  .race-box button { width: 100%; min-height: 48px; }
+  .toggles button { padding: 6px 10px; }
+}

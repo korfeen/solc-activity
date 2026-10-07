@@ -1,9 +1,11 @@
 import { Board, paintBoard } from "./board";
 import { connect, inDiscord, type Player } from "./discord";
+import { initOgre, isOgre, onOgreChange, say, setOgre, T } from "./ogre";
 import { pictureRarity, rollTraits, traitLines, type Rarity, type Traits } from "./pictures";
 import type { Race, RoomState } from "./protocol";
 import { applyMoves, countInPlace, decodeMoves, DEFAULT_SIZE, encodeMoves, isSolved, newSeed, scramble, type Mode } from "./puzzle";
 import { RoomClient } from "./room";
+import { isMuted, setMuted, sounds } from "./sound";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const status = $("status");
@@ -17,17 +19,23 @@ const puzzleTitle = $("puzzle-title");
 const timeText = $("time"), movesText = $("moves"), resultText = $("result"), hintText = $("hint");
 const startButton = $<HTMLButtonElement>("start"), pictureButton = $<HTMLButtonElement>("new-picture");
 const rarityText = $("picture-rarity"), traitList = $("traits"), seedText = $("seed");
+const ogreButton = $<HTMLButtonElement>("ogre-toggle"), muteButton = $<HTMLButtonElement>("mute");
 const choiceButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-mode], [data-size]")];
 
-const RARITY_NAMES: Record<Rarity, string> = { uncommon: "Uncommon", rare: "Rare", epic: "Epic", legendary: "Legendary" };
-const HINTS: Record<Mode, string> = {
-  swap: "Click two pieces to swap them. Keys: arrows and Space.",
-  sliding: "Click a piece next to the gap to slide it in. Keys: arrows.",
+// Every text here has a normal and an ogre version (ALL CAPS, five letters a word at most; names are exempt).
+const RARITY_NAMES: Record<Rarity, [string, string]> = {
+  uncommon: ["Uncommon", "GREEN"], rare: ["Rare", "BLUE"], epic: ["Epic", "PURPL"], legendary: ["Legendary", "ORANG"],
 };
+const HINTS: Record<Mode, [string, string]> = {
+  swap: ["Click two pieces to swap them. Keys: arrows and Space.", "CLICK TWO. SWAP!"],
+  sliding: ["Click a piece next to the gap to slide it in. Keys: arrows.", "CLICK NEXT TO HOLE."],
+};
+const START_LABELS = { start: ["Start", "GO"], restart: ["Restart", "AGAIN"], again: ["Play again", "AGAIN"], giveUp: ["Give up", "QUIT"] } as const;
 const PLACES = ["🥇", "🥈", "🥉"];
 
 const formatTime = (seconds: number) =>
   seconds >= 60 ? `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(1).padStart(4, "0")}` : seconds.toFixed(1);
+const loud = (name: string) => (isOgre() ? name.toUpperCase() : name);
 
 let mode: Mode = "swap";
 let size = DEFAULT_SIZE;
@@ -37,6 +45,20 @@ let participants: Player[] = [];  // from Discord, until the room answers
 let room: RoomClient | undefined;
 let racing: Race | undefined;    // the race we're in, until it's over
 let shownRace: string | undefined; // the race whose picture the board has (for the mini-boards and replays)
+let movesCount = 0;
+let lastInPlace = 0;
+
+initOgre();
+
+// The texts that change, each kept as a function so ogre mode can redraw it.
+const setStart = (label: keyof typeof START_LABELS) => say(startButton, () => T(START_LABELS[label][0], START_LABELS[label][1]));
+const setResult = (render: () => string) => say(resultText, render);
+const setHint = (hint: Mode | null) => say(hintText, () => (hint ? T(...HINTS[hint]) : ""));
+const setMoves = (moves: number) => {
+  movesCount = moves;
+  say(movesText, () => T(`${movesCount} move${movesCount === 1 ? "" : "s"}`, `${movesCount} MOVE`));
+};
+const setTitle = (race: boolean) => say(puzzleTitle, () => (race ? T("Race", "RACE") : T("Practice", "THUNK")));
 
 // A player's board in a race: its scramble with their moves so far.
 const scrambles = new Map<string, number[]>();
@@ -52,14 +74,14 @@ function raceSlots(race: Race, id: string): number[] {
 // --- Who's here: the room's players with their race standing, or Discord's participant list ---
 
 function standing(race: Race | null, id: string): string {
-  if (!race || !race.entrants.includes(id)) return race && !race.over ? "watching" : "";
+  if (!race || !race.entrants.includes(id)) return race && !race.over ? T("watching", "WATCH") : "";
   const finish = race.finishes[id];
   if (finish) {
     const place = Object.values(race.finishes).filter((other) => other.ms < finish.ms).length;
     return `${PLACES[place] ?? `#${place + 1}`} ${formatTime(finish.ms / 1000)}`;
   }
-  if (race.gaveUp.includes(id)) return "gave up";
-  if (race.over) return "didn't finish";
+  if (race.gaveUp.includes(id)) return T("gave up", "QUIT");
+  if (race.over) return T("didn't finish", "NOPE");
   return `${countInPlace(raceSlots(race, id))}/${race.size * race.size}`;
 }
 
@@ -84,7 +106,7 @@ function renderPlayers() {
       }
       const name = document.createElement("span");
       name.className = "name";
-      name.textContent = player.name + (me && player.id === me.id ? " (you)" : "");
+      name.textContent = loud(player.name) + (me && player.id === me.id ? T(" (you)", " (YOU)") : "");
       const note = document.createElement("span");
       note.className = "standing";
       note.textContent = standing(race, player.id);
@@ -97,6 +119,7 @@ function renderPlayers() {
 // --- Everyone's boards in miniature: live while racing (not yours), all of them afterwards to replay ---
 
 const rivalCanvases = new Map<string, HTMLCanvasElement>();
+const playerName = (id: string) => loud(room?.state.players.find((p) => p.id === id)?.name ?? T("Someone", "SOME OGRE"));
 
 function renderRivals(race: Race | null) {
   if (!race || race.id !== shownRace) {
@@ -104,7 +127,6 @@ function renderRivals(race: Race | null) {
     rivalCanvases.clear();
     return;
   }
-  const players = new Map((room?.state.players ?? []).map((p) => [p.id, p]));
   const shown = race.entrants.filter((id) => race.over || id !== me?.id);
   const buttons = shown.map((id) => {
     let canvas = rivalCanvases.get(id);
@@ -119,7 +141,7 @@ function renderRivals(race: Race | null) {
       rivalCanvases.set(id, canvas);
     }
     const finished = !!race.finishes[id];
-    const name = players.get(id)?.name ?? "Someone";
+    const name = playerName(id);
     button.querySelector("span")!.textContent = name;
     button.classList.toggle("done", finished);
     // Replays once the race is over, for anyone with a checked solve.
@@ -139,12 +161,14 @@ function renderRivals(race: Race | null) {
 function watchReplay(id: string) {
   const race = room?.state.race;
   if (!race || !race.over || race.id !== shownRace || racing || !race.moves?.[id]) return;
-  const name = room?.state.players.find((p) => p.id === id)?.name ?? "Someone";
   const finish = race.finishes[id];
-  const detail = finish ? `, ${formatTime(finish.ms / 1000)} with ${finish.moves} moves` : "";
-  resultText.textContent = `Replay: ${name}${detail} (2× speed)`;
+  setResult(() => {
+    const time = finish ? formatTime(finish.ms / 1000) : "";
+    return T(`Replay: ${playerName(id)}${finish ? `, ${time} with ${finish.moves} moves` : ""} (2× speed)`,
+      `WATCH ${playerName(id)}. ${time}`);
+  });
   board.replay(race.mode, race.seed, race.size, decodeMoves(race.moves[id]), 2, () => {
-    resultText.textContent = `That was ${name}'s solve.`;
+    setResult(() => T(`That was ${playerName(id)}'s solve.`, `THAT ${playerName(id)}. SMART.`));
   });
 }
 
@@ -155,7 +179,7 @@ function showPicture(newTraits: Traits) {
   const rarity = pictureRarity(traits);
   canvas.dataset.rarity = rarity;
   rarityText.dataset.rarity = rarity;
-  rarityText.textContent = RARITY_NAMES[rarity];
+  say(rarityText, () => T(...RARITY_NAMES[rarity]));
   traitList.replaceChildren(
     ...traitLines(traits).map((line) => {
       const item = document.createElement("li");
@@ -172,7 +196,8 @@ function showPicture(newTraits: Traits) {
 
 function resetClock() {
   timeText.textContent = "0.0";
-  movesText.textContent = "0 moves";
+  setMoves(0);
+  lastInPlace = 0;
 }
 
 function tick() {
@@ -193,7 +218,7 @@ function setChoices(newMode: Mode, newSize: number) {
 // Practice controls are locked while racing.
 function lockPractice(locked: boolean) {
   for (const button of [...choiceButtons, pictureButton]) button.disabled = locked;
-  puzzleTitle.textContent = locked ? "Race" : "Practice";
+  setTitle(locked);
 }
 
 // --- Practice ---
@@ -211,15 +236,16 @@ function saveBest(seconds: number) {
 }
 function showBest() {
   const best = bestTime();
-  resultText.textContent = best ? `Best ${mode} ${size}×${size}: ${formatTime(best)}` : "";
+  const [m, s] = [mode, size];
+  setResult(() => (best ? T(`Best ${m} ${s}×${s}: ${formatTime(best)}`, `BEST: ${formatTime(best)}`) : ""));
 }
 
 function toWhole() {
   board.showWhole(size);
   resetClock();
-  hintText.textContent = "";
+  setHint(null);
   seedText.textContent = "";
-  startButton.textContent = "Start";
+  setStart("start");
   showBest();
 }
 
@@ -229,7 +255,7 @@ async function newPicture() {
   try {
     await board.load(rolled);
   } catch (error) {
-    resultText.textContent = error instanceof Error ? error.message : String(error);
+    setResult(() => (error instanceof Error ? error.message : String(error)));
     return;
   } finally {
     pictureButton.disabled = startButton.disabled = false;
@@ -245,10 +271,12 @@ function startPractice() {
   const seed = newSeed();
   board.start(mode, seed, size);
   resetClock();
-  resultText.textContent = "";
-  hintText.textContent = HINTS[mode];
+  lastInPlace = board.inPlace();
+  setResult(() => "");
+  setHint(mode);
   seedText.textContent = `Puzzle ${seed} (${mode}, ${size}×${size})`;
-  startButton.textContent = "Restart";
+  setStart("restart");
+  sounds.drum();
   tick();
 }
 
@@ -261,10 +289,10 @@ async function joinRace(race: Race) {
   racing = race;
   lockPractice(true);
   setChoices(race.mode, race.size);
-  startButton.textContent = "Give up";
-  resultText.textContent = "";
+  setStart("giveUp");
+  setResult(() => "");
   seedText.textContent = `Puzzle ${race.seed} (${race.mode}, ${race.size}×${race.size})`;
-  hintText.textContent = HINTS[race.mode];
+  setHint(race.mode);
   resetClock();
   await board.load(race.traits);
   if (racing?.id !== race.id) return;  // (it ended while the art loaded)
@@ -273,18 +301,23 @@ async function joinRace(race: Race) {
   board.showWhole(race.size);
   renderRivals(race);
   window.clearInterval(countdownTimer);
+  let lastShown = "";
   const step = () => {
     const left = race.startsAt - room!.serverNow();
     if (racing?.id !== race.id) return;
     if (left > 0) {
       countdown.hidden = false;
-      countdown.textContent = String(Math.ceil(left / 1000));
+      const shown = String(Math.ceil(left / 1000));
+      if (shown !== lastShown) sounds.drum();
+      countdown.textContent = lastShown = shown;
       return;
     }
     window.clearInterval(countdownTimer);
     countdown.textContent = "SMASH!";
+    sounds.drum(true);
     setTimeout(() => { countdown.hidden = true; }, 600);
     board.start(race.mode, race.seed, race.size);
+    lastInPlace = board.inPlace();
     tick();
   };
   countdownTimer = window.setInterval(step, 100);
@@ -297,13 +330,23 @@ function endRace(race: Race) {
   if (board.isPlaying) board.stop();
   racing = undefined;
   lockPractice(false);
-  startButton.textContent = "Start";
-  hintText.textContent = "";
+  setStart("start");
+  setHint(null);
   const winner = Object.entries(race.finishes).sort((a, b) => a[1].ms - b[1].ms)[0];
-  const name = (id: string) => room?.state.players.find((p) => p.id === id)?.name ?? "Someone";
-  resultText.textContent = winner
-    ? `${name(winner[0])} won in ${formatTime(winner[1].ms / 1000)} with ${winner[1].moves} moves!`
-    : "Nobody finished that one.";
+  if (winner && winner[0] === me?.id) sounds.fanfare();
+  setResult(() => (winner
+    ? T(`${playerName(winner[0])} won in ${formatTime(winner[1].ms / 1000)} with ${winner[1].moves} moves!`,
+      `${playerName(winner[0])} BIG WIN. ${formatTime(winner[1].ms / 1000)}!`)
+    : T("Nobody finished that one.", "NO ONE DONE.")));
+}
+
+function renderRaceStatus(state: RoomState) {
+  const race = state.race;
+  const mine = race && me && race.entrants.includes(me.id);
+  say(raceStatus, () => (!race || race.over
+    ? T("Race everyone here on the same puzzle.", "ALL SMASH SAME PUZZL.")
+    : mine ? T(`Racing: ${race.mode}, ${race.size}×${race.size}`, `RACE: ${race.mode === "sliding" ? "SLIDE" : "SWAP"}`)
+      : T("A race is on. You're in the next one.", "RACE ON. YOU NEXT.")));
 }
 
 function onRoomState(state: RoomState) {
@@ -312,9 +355,7 @@ function onRoomState(state: RoomState) {
   if (race && !race.over && mine && racing?.id !== race.id) joinRace(race);
   if (racing && race?.id === racing.id && race.over) endRace(race);
   raceButton.disabled = !!race && !race.over;
-  raceStatus.textContent = !race || race.over
-    ? "Race everyone here on the same puzzle."
-    : mine ? `Racing: ${race.mode}, ${race.size}×${race.size}` : "A race is on. You're in the next one.";
+  renderRaceStatus(state);
   renderPlayers();
   renderRivals(race);
 }
@@ -324,7 +365,10 @@ function onRoomState(state: RoomState) {
 let sendTimer: number | undefined;
 
 board.onMove = (moves) => {
-  movesText.textContent = `${moves} move${moves === 1 ? "" : "s"}`;
+  setMoves(moves);
+  const inPlace = board.inPlace();
+  if (inPlace > lastInPlace) sounds.pop(); else sounds.bonk();
+  lastInPlace = inPlace;
   if (racing && !sendTimer) {
     // Everyone's mini-board of you: your moves so far, a few times a second.
     sendTimer = window.setTimeout(() => {
@@ -335,20 +379,25 @@ board.onMove = (moves) => {
 };
 board.onSolved = (moves, seconds) => {
   timeText.textContent = formatTime(seconds);
-  hintText.textContent = "";
+  setHint(null);
+  sounds.crunch();
   if (racing) {
     room?.send({ type: "finish", raceId: racing.id, moves: encodeMoves(board.recording) });
-    resultText.textContent = "Solved! Waiting for the others…";
-    startButton.textContent = "Start";
+    setResult(() => T("Solved! Waiting for the others…", "DONE! WAIT FRENZ."));
+    setStart("start");
     return;
   }
   const best = bestTime();
   const record = !best || seconds < best;
-  if (record) saveBest(seconds);
-  resultText.textContent = record
-    ? `Solved in ${formatTime(seconds)} with ${moves} moves. New best!`
-    : `Solved in ${formatTime(seconds)} with ${moves} moves. Best: ${formatTime(best!)}`;
-  startButton.textContent = "Play again";
+  if (record) {
+    saveBest(seconds);
+    setTimeout(sounds.fanfare, 300);
+  }
+  const time = formatTime(seconds);
+  setResult(() => (record
+    ? T(`Solved in ${time} with ${moves} moves. New best!`, `DONE! ${time}. BEST!`)
+    : T(`Solved in ${time} with ${moves} moves. Best: ${formatTime(best!)}`, `DONE! ${time}. BEST ${formatTime(best!)}.`)));
+  setStart("again");
 };
 
 // --- Buttons ---
@@ -365,7 +414,7 @@ startButton.addEventListener("click", () => {
     if (board.isPlaying) {
       room?.send({ type: "giveUp", raceId: racing.id });
       board.stop();
-      resultText.textContent = "You gave up. Waiting for the others…";
+      setResult(() => T("You gave up. Waiting for the others…", "YOU QUIT. WAIT FRENZ."));
     }
     return;
   }
@@ -374,8 +423,34 @@ startButton.addEventListener("click", () => {
 pictureButton.addEventListener("click", newPicture);
 raceButton.addEventListener("click", () => room?.send({ type: "race", mode, size }));
 
+// The OGRE and sound switches (each remembered in this browser).
+function showToggles() {
+  ogreButton.setAttribute("aria-pressed", String(isOgre()));
+  muteButton.setAttribute("aria-pressed", String(isMuted()));
+  muteButton.textContent = isMuted() ? "🔇" : "🔊";
+  muteButton.setAttribute("aria-label", isMuted() ? "Sound off" : "Sound on");
+}
+ogreButton.addEventListener("click", () => {
+  setOgre(!isOgre());
+  showToggles();
+  sounds.bonk();
+});
+muteButton.addEventListener("click", () => {
+  setMuted(!isMuted());
+  showToggles();
+  sounds.pop();
+});
+onOgreChange(() => {
+  renderPlayers();
+  if (room) renderRaceStatus(room.state);
+  renderRivals(room?.state.race ?? null);
+});
+showToggles();
+
 // --- Start up ---
 
+setTitle(false);
+setStart("start");
 connect((players) => {
   participants = players;
   renderPlayers();
@@ -383,13 +458,16 @@ connect((players) => {
   .then((session) => {
     me = session.me;
     renderPlayers();
-    status.textContent = inDiscord ? `Welcome, ${me.name}.` : "Preview outside Discord: the players are made up.";
+    const name = session.me.name;
+    say(status, () => (inDiscord
+      ? T(`Welcome, ${name}.`, `OI ${name.toUpperCase()}!`)
+      : T("Preview outside Discord: the players are made up.", "FAKE FRENZ. NO DSCRD.")));
     if (session.accessToken) {
       room = new RoomClient(session.instanceId, session.accessToken);
       room.onState = onRoomState;
-      room.onError = (message) => { raceStatus.textContent = message; };
+      room.onError = (message) => say(raceStatus, () => message);
     } else {
-      raceStatus.textContent = "Races work inside Discord.";
+      say(raceStatus, () => T("Races work inside Discord.", "RACE ONLY IN DSCRD."));
     }
   })
   .catch((error: unknown) => {
