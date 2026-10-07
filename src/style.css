@@ -58,16 +58,23 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
 [data-rarity="epic"] { --rarity: #a335ee; }
 [data-rarity="legendary"] { --rarity: #ff8000; }
 
+/* The board in the middle; who's here on its left, the controls on its right. Narrow: stacked, board first. */
 .puzzle {
-  width: min(100%, 52rem);
-  display: flex;
-  flex-wrap: wrap;
+  width: min(100%, 80rem);
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 30rem) 1fr;
   gap: 24px;
-  align-items: flex-start;
-  justify-content: center;
+  align-items: start;
+}
+.puzzle > .players { justify-self: end; }
+.puzzle-info { justify-self: start; }
+@media (max-width: 860px) {
+  .puzzle { grid-template-columns: minmax(0, 30rem); justify-content: center; }
+  .puzzle > .players, .puzzle-info { justify-self: stretch; width: 100%; max-width: none; }
+  #board { order: -1; }
 }
 #board {
-  width: min(100%, 30rem);
+  width: 100%;
   aspect-ratio: 1;
   border: 3px solid var(--rarity, var(--line));
   border-radius: 6px;
@@ -76,7 +83,7 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
   cursor: pointer;
 }
 #board:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-.puzzle-info { flex: 1 1 15rem; max-width: 22rem; min-width: 0; display: grid; gap: 12px; align-content: start; }
+.puzzle-info { width: 100%; max-width: 22rem; min-width: 0; display: grid; gap: 12px; align-content: start; }
 .puzzle-info h2 { margin: 0; font: 400 1.6rem/1 var(--display); color: var(--gold); }
 
 .choices { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -112,7 +119,7 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
 .status.error { color: var(--error); }
 
 .players {
-  width: min(100%, 26rem);
+  width: min(100%, 16rem);
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 10px;

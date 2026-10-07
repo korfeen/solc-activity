@@ -14,6 +14,10 @@
       </header>
       <p id="status" class="status">Waking the ogre…</p>
       <section class="puzzle" aria-labelledby="puzzle-title">
+        <section class="players" aria-labelledby="players-title">
+          <h2 id="players-title">In the cave</h2>
+          <ul id="players"></ul>
+        </section>
         <canvas id="board" aria-label="Puzzle board"></canvas>
         <div class="puzzle-info">
           <h2 id="puzzle-title">Practice</h2>
@@ -42,10 +46,6 @@
             <p id="seed" class="seed"></p>
           </details>
         </div>
-      </section>
-      <section class="players" aria-labelledby="players-title">
-        <h2 id="players-title">In the cave</h2>
-        <ul id="players"></ul>
       </section>
     </main>
     <script type="module" src="/src/main.ts"></script>

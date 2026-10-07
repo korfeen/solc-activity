@@ -174,33 +174,41 @@ export class Board {
   draw() {
     const context = this.context, side = this.canvas.width, size = this.size;
     if (!side || this.slots.length < 2) return;
-    const cell = side / size, source = PICTURE / size;
-    const gapPiece = this.mode === "sliding" && this.playing ? size * size : -1;
+    const source = PICTURE / size;
+    // Cuts on whole canvas pixels: a cut at a fraction of a pixel blurs into a faint seam between pieces.
+    const edge = (i: number) => Math.round((i * side) / size);
+    const box = (slot: number) => {
+      const col = (slot - 1) % size, row = Math.floor((slot - 1) / size);
+      return { x: edge(col), y: edge(row), w: edge(col + 1) - edge(col), h: edge(row + 1) - edge(row) };
+    };
     context.clearRect(0, 0, side, side);
+    if (!this.playing && isSolved(this.slots)) {
+      context.drawImage(this.picture, 0, 0, side, side);  // whole: one piece, no seams at all
+      return;
+    }
     context.fillStyle = "#0b0c0f";
     context.fillRect(0, 0, side, side);
+    const gapPiece = this.mode === "sliding" && this.playing ? size * size : -1;
     for (let slot = 1; slot <= size * size; slot++) {
       const piece = this.slots[slot];
-      const x = ((slot - 1) % size) * cell, y = Math.floor((slot - 1) / size) * cell;
       if (piece === gapPiece) continue;
+      const { x, y, w, h } = box(slot);
       const sx = ((piece - 1) % size) * source, sy = Math.floor((piece - 1) / size) * source;
-      context.drawImage(this.picture, sx, sy, source, source, x, y, cell, cell);
+      context.drawImage(this.picture, sx, sy, source, source, x, y, w, h);
     }
     // Grid lines between the pieces while playing, so the cuts are visible.
     if (this.playing) {
-      context.strokeStyle = GRID_LINE;
-      context.lineWidth = Math.max(1, side / 300);
-      context.beginPath();
+      context.fillStyle = GRID_LINE;
+      const width = Math.max(1, Math.round(side / 300));
       for (let i = 1; i < size; i++) {
-        context.moveTo(i * cell, 0); context.lineTo(i * cell, side);
-        context.moveTo(0, i * cell); context.lineTo(side, i * cell);
+        context.fillRect(edge(i) - Math.floor(width / 2), 0, width, side);
+        context.fillRect(0, edge(i) - Math.floor(width / 2), side, width);
       }
-      context.stroke();
     }
     for (let slot = 1; slot <= size * size; slot++) {
       const state = this.state(slot);
       if (!state) continue;
-      const x = ((slot - 1) % size) * cell, y = Math.floor((slot - 1) / size) * cell;
+      const { x, y, w: cell } = box(slot);
       const line = Math.max(2, side / 160);
       if (state !== "hover") {
         context.fillStyle = `rgba(${COLORS[state]}, 0.18)`;
