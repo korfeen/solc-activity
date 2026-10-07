@@ -13,13 +13,34 @@
         <p class="sub">Puzzle races</p>
       </header>
       <p id="status" class="status">Waking the ogre…</p>
-      <section class="picture" aria-labelledby="picture-title">
-        <canvas id="picture" width="512" height="512" aria-label="A rolled picture"></canvas>
-        <div class="picture-info">
-          <h2 id="picture-title">A rolled picture</h2>
-          <p id="picture-rarity" class="rarity"></p>
-          <ul id="traits" class="traits"></ul>
-          <button id="roll" type="button">Roll another</button>
+      <section class="puzzle" aria-labelledby="puzzle-title">
+        <canvas id="board" aria-label="Puzzle board"></canvas>
+        <div class="puzzle-info">
+          <h2 id="puzzle-title">Practice</h2>
+          <div class="choices" role="group" aria-label="Mode">
+            <button type="button" data-mode="swap" aria-pressed="true">Swap</button>
+            <button type="button" data-mode="sliding" aria-pressed="false">Sliding</button>
+          </div>
+          <div class="choices" role="group" aria-label="Size">
+            <button type="button" data-size="3" aria-pressed="false">3×3</button>
+            <button type="button" data-size="4" aria-pressed="true">4×4</button>
+            <button type="button" data-size="5" aria-pressed="false">5×5</button>
+          </div>
+          <div class="clock">
+            <span id="time">0.0</span>
+            <span id="moves">0 moves</span>
+          </div>
+          <p id="result" class="result"></p>
+          <div class="actions">
+            <button id="start" type="button" class="primary">Start</button>
+            <button id="new-picture" type="button">New picture</button>
+          </div>
+          <p id="hint" class="hint"></p>
+          <details class="about">
+            <summary><span id="picture-rarity" class="rarity"></span> picture</summary>
+            <ul id="traits" class="traits"></ul>
+            <p id="seed" class="seed"></p>
+          </details>
         </div>
       </section>
       <section class="players" aria-labelledby="players-title">
