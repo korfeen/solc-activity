@@ -177,5 +177,6 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
   border-radius: 6px;
   pointer-events: none;
 }
+.countdown[hidden] { display: none; }  /* (display: grid above would override hidden) */
 .players li .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .players li .standing { flex: none; color: var(--gold); font-variant-numeric: tabular-nums; font-size: 0.9rem; }
