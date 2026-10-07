@@ -55,7 +55,7 @@ export async function connect(onPlayers: (players: Player[]) => void): Promise<S
     response_type: "code",
     state: "",
     prompt: "none",
-    scope: ["identify", "guilds", "applications.commands"],
+    scope: ["identify", "applications.commands"],  // who you are; nothing else (see public/privacy.html)
   });
   const response = await fetch("/api/token", {
     method: "POST",
