@@ -1,0 +1,26 @@
+{
+  "name": "solc-activity",
+  "private": true,
+  "type": "module",
+  "description": "SOLC Puzzle as a Discord Activity: guild picture puzzle races in voice channels.",
+  "scripts": {
+    "dev": "vite",
+    "worker": "wrangler dev",
+    "check": "tsc -p tsconfig.json --noEmit && tsc -p worker/tsconfig.json --noEmit",
+    "build": "npm run check && vite build",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@discord/embedded-app-sdk": "^2.5.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261007.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3",
+    "wrangler": "^4.148.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "workerd@1.20261006.1": true
+  }
+}

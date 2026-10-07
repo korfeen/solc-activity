@@ -1,0 +1,18 @@
+// One Cloudflare Worker serves the Activity page (the Vite build in dist/) and its API (worker/index.ts).
+// Discord's URL mapping points "/" at this Worker's address.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "solc-activity",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    // The Discord application's client ID (public). The client secret is a Worker secret:
+    // `npx wrangler secret put DISCORD_CLIENT_SECRET`, and DISCORD_CLIENT_SECRET in .dev.vars for local runs.
+    "DISCORD_CLIENT_ID": "1557352770070253628"
+  }
+}
