@@ -13,6 +13,7 @@ export interface Session {
   me: Player;
   instanceId: string;  // the same for everyone in this Activity session: it names the race room
   inDiscord: boolean;
+  accessToken?: string;  // proves who you are to the race room (Discord only)
 }
 
 const CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID as string;
@@ -70,5 +71,5 @@ export async function connect(onPlayers: (players: Player[]) => void): Promise<S
   report(participants);
   sdk.subscribe("ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE", (event) => report(event.participants));
 
-  return { me: toPlayer(auth.user), instanceId: sdk.instanceId, inDiscord: true };
+  return { me: toPlayer(auth.user), instanceId: sdk.instanceId, inDiscord: true, accessToken: access_token };
 }

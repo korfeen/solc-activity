@@ -10,6 +10,11 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
+  // The race rooms (worker/room.ts): one Durable Object per Activity session, SQLite-backed (free plan).
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "RaceRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RaceRoom"] }],
   "vars": {
     // The Discord application's client ID (public). The client secret is a Worker secret:
     // `npx wrangler secret put DISCORD_CLIENT_SECRET`, and DISCORD_CLIENT_SECRET in .dev.vars for local runs.

@@ -1,8 +1,12 @@
 // The Activity's server: /api/token swaps the login code Discord gives the page for an access token (that
-// needs the app's client secret, which can't be in the page). Everything else is the page itself (dist/).
+// needs the app's client secret, which can't be in the page), and /api/room is the race room's WebSocket
+// (worker/room.ts, one Durable Object per Activity session). Everything else is the page itself (dist/).
+
+export { RaceRoom } from "./room";
 
 interface Env {
   ASSETS: Fetcher;
+  ROOMS: DurableObjectNamespace;
   DISCORD_CLIENT_ID: string;
   DISCORD_CLIENT_SECRET: string;
 }
@@ -32,6 +36,12 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === "/api/token" && request.method === "POST") return exchangeToken(request, env);
+    if (url.pathname === "/api/room") {
+      // The room for this Activity session; players log in with their first message.
+      const instance = url.searchParams.get("instance") ?? "";
+      if (!/^[\w-]{1,100}$/.test(instance)) return json({ error: "bad instance" }, 400);
+      return env.ROOMS.get(env.ROOMS.idFromName(instance)).fetch(request);
+    }
     if (url.pathname.startsWith("/api/")) return json({ error: "not found" }, 404);
     return env.ASSETS.fetch(request);
   },

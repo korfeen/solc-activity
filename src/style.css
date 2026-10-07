@@ -71,9 +71,11 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
 @media (max-width: 860px) {
   .puzzle { grid-template-columns: minmax(0, 30rem); justify-content: center; }
   .puzzle > .players, .puzzle-info { justify-self: stretch; width: 100%; max-width: none; }
-  #board { order: -1; }
+  .board-wrap { order: -1; }
 }
+.board-wrap { position: relative; width: 100%; }
 #board {
+  display: block;
   width: 100%;
   aspect-ratio: 1;
   border: 3px solid var(--rarity, var(--line));
@@ -130,7 +132,6 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
 .players h2 { margin: 0; font: 400 1.2rem/1 var(--display); color: var(--gold); }
 .players ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .players li { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.players li > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .avatar {
   position: relative;
@@ -145,3 +146,36 @@ body { background: var(--bg); color: var(--cream); font: 16px/1.5 var(--body); }
   overflow: hidden;
 }
 .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* The race: the call-a-race box, the countdown over the board, standings in the player list. */
+.race-box { display: grid; gap: 6px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.race-box button {
+  justify-self: start;
+  font: 400 1.25rem/1 var(--display);
+  color: var(--cream);
+  background: var(--blue);
+  border: 0;
+  border-radius: 6px;
+  padding: 11px 18px;
+  cursor: pointer;
+}
+.race-box button:hover:not(:disabled) { filter: brightness(1.15); }
+.race-box button:disabled { opacity: 0.5; cursor: default; }
+.race-box button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.race-status { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.choices button:disabled { opacity: 0.45; cursor: default; filter: none; }
+
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 400 clamp(3rem, 18vw, 7rem)/1 "Finger Paint", var(--display);
+  color: var(--gold);
+  text-shadow: 0 4px 0 #3a1e0c, 0 0 30px rgba(0, 0, 0, 0.8);
+  background: rgba(10, 11, 14, 0.45);
+  border-radius: 6px;
+  pointer-events: none;
+}
+.players li .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.players li .standing { flex: none; color: var(--gold); font-variant-numeric: tabular-nums; font-size: 0.9rem; }

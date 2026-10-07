@@ -75,6 +75,13 @@ export class Board {
   }
 
   get isPlaying() { return this.playing; }
+
+  // How many pieces are in their place.
+  inPlace(): number {
+    let count = 0;
+    for (let i = 1; i < this.slots.length; i++) if (this.slots[i] === i) count++;
+    return count;
+  }
   get elapsed() { return (performance.now() - this.startedAt) / 1000; }
 
   // --- Rules ---

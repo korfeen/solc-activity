@@ -18,8 +18,15 @@
           <h2 id="players-title">In the cave</h2>
           <ul id="players"></ul>
         </section>
-        <canvas id="board" aria-label="Puzzle board"></canvas>
+        <div class="board-wrap">
+          <canvas id="board" aria-label="Puzzle board"></canvas>
+          <div id="countdown" class="countdown" hidden></div>
+        </div>
         <div class="puzzle-info">
+          <div class="race-box">
+            <button id="race" type="button" class="primary" disabled>Race everyone</button>
+            <p id="race-status" class="race-status">Connecting to the room…</p>
+          </div>
           <h2 id="puzzle-title">Practice</h2>
           <div class="choices" role="group" aria-label="Mode">
             <button type="button" data-mode="swap" aria-pressed="true">Swap</button>
